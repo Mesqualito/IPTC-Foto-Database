@@ -27,18 +27,14 @@ while (my $folder = shift @directories) {
                 my %exif_data = ();
                 my $exif_tool = new Image::ExifTool;
                 my $info = $exif_tool->ImageInfo($file_string);
-                if (%{$info}) {
-                    my $i = 1;
-                    foreach (keys %{$info}) {
-                        say "$i. Key: $_ => Value: $$info{$_}";
-                        $exif_data{$_} = "$$info{$_}";
-                        $i++;
-                }
+                foreach my $key (keys %{$info}) {
+                    say "Key: $key => Value: %{$info}{$key}";
+                    $exif_data{$key} = %{$info}{$key};
+                 }
                 $file_catalog{$file_string} = %exif_data;
             }
         }
     }
-}
 }
 my $hash_size = keys %file_catalog;
 say "Im 'file_catalog'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $hash_size;
@@ -55,6 +51,6 @@ say "Im 'test_entries'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $
 say "Exif-Daten von '$test_entry_key':";
 say Dumper(%test_entries, $test_entry_key);
 
-while(my ($key, $value) = each %{@test_entries{ $test_entry_key }}) {
+while (my ($key, $value) = each %{@test_entries{ $test_entry_key }}) {
     say Dumper($key, $value);
 };
