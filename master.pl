@@ -4,6 +4,7 @@ use warnings;
 # http://owl.phy.queensu.ca/~phil/exiftool/
 use Image::ExifTool;
 use Data::Dumper;
+use Data::Types qw(:all);
 use v5.28;
 
 my @directories = ("/home/jhassfurter/Bilder");
@@ -15,7 +16,7 @@ while (my $folder = shift @directories) {
     opendir(DirHandle, "$folder") or die "Cannot open $folder\n";
     my @files = readdir(DirHandle);
     closedir(DirHandle);
-    my $i = 1;
+
     foreach my $file (@files) {
         my $file_string = "$folder/$file";
         if (-f $file_string) {
@@ -25,38 +26,27 @@ while (my $folder = shift @directories) {
             my $suffix = substr $file, $sep_pos + 1, $end_chars;
             if (grep ( lc $suffix, @suffixes)) {
                 my %exif_data = ();
+                my @helper = ();
                 my $exif_tool = new Image::ExifTool;
                 my $info = $exif_tool->ImageInfo($file_string);
 
                 # read out referenced hash per file-entry with '%{$...}'
-                foreach my $key (keys %{$info}) {
-                    say "Key: $key -> Value: ", $info->{ $key };
-                    %exif_data = $info->{ $key };
+                foreach my $key (sort keys %{ $info }) {
+                    foreach my $subject (keys %{ $info{ $key } }) {
+                        say "Key: $key, subject: $subject: $info{$key}{$subject}";
+                    }
                 }
-                # to avoid flattening if read out again
-                # use reference:
-                my $nested_exif_data = \%exif_data;
-                %file_catalog = ($file_string => $nested_exif_data);
-                say "$i. Eintrag für '$file' in '\%file_catalog' geschrieben.";
-                $i++;
             }
-
+            # to avoid flattening if read out again
+            # use reference:
+            # my $nested_exif_data = \%exif_data;
+            # say "Key ist: '$file_string'";
+            # %file_catalog = $nested_exif_data->{ q($file_string) };
         }
+
     }
 }
-my $hash_size = keys %file_catalog;
-say "Im 'file_catalog'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $hash_size;
 
-# copy one value of our hash into another one
-my $test_entry_key = '/run/user/1000/gvfs/smb-share:server=n4310.local,share=daten/InHouse Produktfotos/Webshop-Bilder/ausgewählt/002375.JPG';
-my %test_entries = ($test_entry_key => $file_catalog{ $test_entry_key });
-$hash_size = keys %test_entries;
-say "Im 'test_entries'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $hash_size;
-
-# read out the test-hash
-say "Exif-Daten von '$test_entry_key':";
-# Dereference the hash from the hash:
-print "$test_entries{$test_entry_key}->{'Title'}";
 
 ################## Array reference cheatsheet ##################
 #                                                              #
