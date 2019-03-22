@@ -28,35 +28,18 @@ while (my $folder = shift @directories) {
                 my $exif_tool = new Image::ExifTool;
                 my $info = $exif_tool -> ImageInfo($file_string);
                 say "Datei: $file_string";
+                foreach my $key (keys %{$info}) {
+                    say "Key: $key => Value: %{$info}";
+                    foreach my $innerkey (keys %{$info}){
+                        say "Inner key: $innerkey, inner value: ", $info{$key}{$innerkey}};
+                    }
+
+                }
                 %file_catalog = ( $file_string => $info );
             }
         }
     }
 }
-
-################## Array reference cheatsheet ##################
-#                                                              #
-#  Array: @names                                               #
-#  create reference: $names_ref = \@names                      #
-#  array-reference: $names_ref                                 #
-#                                                              #
-#                      Array                Array Reference    #
-#  Whole array:        @names               @{ $names_ref }    #
-#  Element of array:   $names[0]            ${ $names_ref }[0] #
-#                                           $names_ref->[0]    #
-#  Size of array:      scalar @names        scalar @$names_ref #
-#  Largest index:      $#names              $#$names_ref       #
-#                                                              #
-################################################################
-
-# use $foo->(args) instead of &$foo(args)
-# use $foo->[subscript] instead of $$foo[subscript]
-# use $foo->{subscript} instead of $$foo{subscript}
-# prefer $foo = value if !defined($foo);
-# over $foo //= value;
-# use if (!cond) {
-# over unless (cond) {
-# use foreach instead of for when looping over a list of elements.
 
 my $hash_size = keys %file_catalog;
 print "\n---------------------------\n";
