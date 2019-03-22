@@ -26,10 +26,14 @@ while (my $folder = shift @directories) {
                 my $exif_tool = new Image::ExifTool;
                 my $info = $exif_tool->ImageInfo($file_string);
                 say "Datei: $file_string";
-                foreach my $key (keys %{$info}) {
-                    say "Key: $key => Value: %{$info}";
+                my %dereferenced = ();
+                foreach (keys %{$info}) {
+                    say "Key: $_ => Value: $$info{ $_ }";
+                    %dereferenced = ( $_ => $$info{ $_ });
                 }
-                %file_catalog = ($file_string => $info);
+                my $strange_reference = \%dereferenced;
+                %file_catalog = ($file_string => %dereferenced);
+                %file_catalog = ($file_string => $strange_reference);
             }
         }
     }
