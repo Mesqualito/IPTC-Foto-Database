@@ -1,7 +1,5 @@
 use strict;
 use warnings;
-# https://github.com/exiftool/exiftool
-# http://owl.phy.queensu.ca/~phil/exiftool/
 use Image::ExifTool;
 use Data::Dumper;
 use Data::Types qw(:all);
@@ -26,16 +24,12 @@ while (my $folder = shift @directories) {
             my $suffix = substr $file, $sep_pos + 1, $end_chars;
             if (grep ( lc $suffix, @suffixes)) {
                 my $exif_tool = new Image::ExifTool;
-                my $info = $exif_tool -> ImageInfo($file_string);
+                my $info = $exif_tool->ImageInfo($file_string);
                 say "Datei: $file_string";
                 foreach my $key (keys %{$info}) {
                     say "Key: $key => Value: %{$info}";
-                    foreach my $innerkey (keys %{$info}){
-                        say "Inner key: $innerkey, inner value: ", $info{$key}{$innerkey}};
-                    }
-
                 }
-                %file_catalog = ( $file_string => $info );
+                %file_catalog = ($file_string => $info);
             }
         }
     }
@@ -43,7 +37,7 @@ while (my $folder = shift @directories) {
 
 my $hash_size = keys %file_catalog;
 print "\n---------------------------\n";
-print "Im 'file_catalog'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $hash_size;
+print "In 'file_catalog'-hash recorded image-path (key)-/ exif-data (value)-Hashes: ", $hash_size;
 print "\n---------------------------\n";
 
 # read out referenced hash per file-entry with '%{$...}'
