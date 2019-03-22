@@ -19,17 +19,13 @@ while (my $folder = shift @directories) {
         my $file_string = "$folder/$file";
         if (-f $file_string) {
             my $sep_pos = rindex($file, ".");
-            my $file_length = length $file;
-            my $end_chars = -($sep_pos - $file_length + 1);
+            my $end_chars = -($sep_pos - (length $file) + 1);
             my $suffix = substr $file, $sep_pos + 1, $end_chars;
             if (grep ( lc $suffix, @suffixes)) {
                 my $exif_tool = new Image::ExifTool;
                 my $info = $exif_tool->ImageInfo($file_string);
                 say "Datei: $file_string";
-                %file_catalog = ($file_string => $info);
-                foreach (keys %{$info}) {
-                    say "Key: $_ => Value: $$info{ $_ }";
-                }
+                $file_catalog{$file_string} = $info;
             }
         }
     }
