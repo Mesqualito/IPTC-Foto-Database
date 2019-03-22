@@ -25,28 +25,14 @@ while (my $folder = shift @directories) {
             my $end_chars = -($sep_pos - $file_length + 1);
             my $suffix = substr $file, $sep_pos + 1, $end_chars;
             if (grep ( lc $suffix, @suffixes)) {
-                my %exif_data = ();
-                my @helper = ();
                 my $exif_tool = new Image::ExifTool;
-                my $info = $exif_tool->ImageInfo($file_string);
-
-                # read out referenced hash per file-entry with '%{$...}'
-                foreach my $key (sort keys %{ $info }) {
-                    foreach my $subject (keys %{ $info{ $key } }) {
-                        say "Key: $key, subject: $subject: $info{$key}{$subject}";
-                    }
-                }
+                my $info = $exif_tool -> ImageInfo($file_string);
+                say "Datei: $file_string";
+                %file_catalog = ( $file_string => $info );
             }
-            # to avoid flattening if read out again
-            # use reference:
-            # my $nested_exif_data = \%exif_data;
-            # say "Key ist: '$file_string'";
-            # %file_catalog = $nested_exif_data->{ q($file_string) };
         }
-
     }
 }
-
 
 ################## Array reference cheatsheet ##################
 #                                                              #
@@ -71,3 +57,19 @@ while (my $folder = shift @directories) {
 # use if (!cond) {
 # over unless (cond) {
 # use foreach instead of for when looping over a list of elements.
+
+my $hash_size = keys %file_catalog;
+print "\n---------------------------\n";
+print "Im 'file_catalog'-Hash abgelegte Bildpfad(key)-/ Inhalt(value)-Hashes: ", $hash_size;
+print "\n---------------------------\n";
+
+# read out referenced hash per file-entry with '%{$...}'
+my ($i, $j) = 0;
+foreach my $key (sort keys %file_catalog) {
+    $i++;
+    say "$i. key: $key";
+    foreach my $value (keys %{$file_catalog{ $key }}) {
+        $j++;
+        say "$j. inner key: $key, subject: $value: $file_catalog{$key}{$value}";
+    }
+}
