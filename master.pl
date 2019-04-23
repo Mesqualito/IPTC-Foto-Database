@@ -6,11 +6,11 @@ use Data::Types qw(:all);
 use v5.28;
 use lib './lib';
 use Store::CouchDB;
+use JSON::MaybeXS qw(encode_json decode_json);
 
 my @directories = ("/home/jhassfurter/Bilder/GENERICA");
 my @suffixes = qw(jpg jpeg gif png raw svg tif tiff psd orf nef eps cr2 arw);
-my $sc = Store::CouchDB->new(host => 'localhost', db => 'fotodb', port => '5984', debug => 1 );
-my $rev = 1;
+my $db = CouchDB->new('localhost', '5984');
 
 my %file_catalog = ();
 while (my $folder = shift @directories) {
@@ -41,11 +41,24 @@ while (my $folder = shift @directories) {
                     $couch_put{ $_ } = $$info{$_};
                 }
                 foreach (keys %couch_put) {
+                    my $json_string =
+                    <<JSON
                     say "We want it in db: $_ => $couch_put{$_}";
                 }
-                say "CouchDB: $sc";
-                my ($id, $rev) = $sc->put_doc( \%couch_put );
-                say "Neue _id: $id, neue rev: $rev";
+                $db->put("fotodb/$file", <<JSON);
+                {
+                    "value":
+                    {
+                        "Subject":"I like Perl",
+            "Author":"Rusty",
+            "PostedDate":"2006-08-15T17:30:12-04:00",
+            "Tags":["plankton", "perl", "decisions"],
+            "Body":"I decided today that I don't like plankton. I like perl. Or DO I?"
+        }
+    }
+JSON
+
+
             }
         }
     }
