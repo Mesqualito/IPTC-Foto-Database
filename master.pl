@@ -6,13 +6,13 @@ use Data::Types qw(:all);
 use v5.28;
 use lib './lib';
 use Store::CouchDB;
-use JSON::MaybeXS qw(encode_json decode_json);
+use Mojo::JSON qw(encode_json decode_json);
 
 my @directories = ("/home/jhassfurter/Bilder/GENERICA");
 my @suffixes = qw(jpg jpeg gif png raw svg tif tiff psd orf nef eps cr2 arw);
 my $db = CouchDB->new('localhost', '5984');
+$db->put("fotodb");
 
-my %file_catalog = ();
 while (my $folder = shift @directories) {
 
     opendir(DirHandle, "$folder") or die "Cannot open $folder\n";
@@ -26,55 +26,25 @@ while (my $folder = shift @directories) {
             my $end_chars = -($sep_pos - (length $file) + 1);
             my $suffix = substr $file, $sep_pos + 1, $end_chars;
             if (grep ( lc $suffix, @suffixes)) {
+                # a new ExifTool-Instance
                 my $exif_tool = new Image::ExifTool;
                 # http://owl.phy.queensu.ca/~phil/exiftool/ExifTool.html
                 # "The $info value returned by ImageInfo in the above examples is a reference to a hash containing
                 # the tag/value pairs."
                 my $info = $exif_tool->ImageInfo($file_string);
-                say "Datei: $file_string";
-                $file_catalog{$file_string} = $info;
                 # https://www.cs.mcgill.ca/~abatko/computers/programming/perl/howto/hash
                 my %couch_put = ();
                 $couch_put{ _id } = $file;
-                # $couch_put{ keys %$info } = values $$info;
                 foreach (keys %$info) {
                     $couch_put{ $_ } = $$info{$_};
-                }
-                foreach (keys %couch_put) {
-                    my $json_string =
-                    <<JSON
-                    say "We want it in db: $_ => $couch_put{$_}";
-                }
-                $db->put("fotodb/$file", <<JSON);
-                {
-                    "value":
-                    {
-                        "Subject":"I like Perl",
-            "Author":"Rusty",
-            "PostedDate":"2006-08-15T17:30:12-04:00",
-            "Tags":["plankton", "perl", "decisions"],
-            "Body":"I decided today that I don't like plankton. I like perl. Or DO I?"
-        }
-    }
-JSON
+                    say "$_ => $couch_put{ $_ }";
 
-
+                }
+                my $complete_put = \%couch_put;
+                $complete_put = encode_json $complete_put;
+                say "JSON-String: $complete_put";
+                $db->put("fotodb/$file", $complete_put);
             }
         }
-    }
-}
-
-my $hash_size = keys %file_catalog;
-print "\n---------------------------\n";
-print "In 'file_catalog'-hash recorded image-path (key)-/ exif-data (value)-hashes: ", $hash_size;
-print "\n---------------------------\n";
-
-my ($i, $j) = 0;
-foreach my $key (sort keys %file_catalog) {
-    $i++;
-    printf "%s. key: $key\n", uc chr($i + ord('A') - 1 );
-    foreach my $inner_key (keys %{$file_catalog{ $key }}) {
-        $j++;
-        say "$j. inner key: $inner_key: $file_catalog{$key}{$inner_key}";
     }
 }
